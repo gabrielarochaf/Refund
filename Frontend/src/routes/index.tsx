@@ -21,9 +21,9 @@ export function Routes() {
       case "employee":
         return <EmployeeRoutes />;
       case "manager":
-        return <AuthRoutes />;
-      default:
         return <ManagerRoutes />;
+      default:
+        return <AuthRoutes />;
     }
   }
 

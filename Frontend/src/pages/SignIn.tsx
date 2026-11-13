@@ -1,32 +1,71 @@
 import { Input } from "../components/Input";
 import { Button } from "../components/Button";
-import { useState } from "react";
+import { useActionState } from "react";
+import { z, ZodError } from "zod";
+import { api } from "../services/api";
+import { AxiosError } from "axios";
+
+const signInScheme = z.object({
+  email: z.string().email({ message: "Invalid E-mail" }),
+  password: z.string().trim().min(1, { message: "Type password" }),
+});
 
 export function SignIn() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [state, formaAction, isLoading] = useActionState(signIn, null);
 
-  function onSubmit(e: React.SubmitEvent) {
-    e.preventDefault();
-    console.log(email, password);
+  async function signIn(_: any, formData: FormData) {
+    try {
+      const data = signInScheme.parse({
+        email: formData.get("email"),
+        password: formData.get("password"),
+      });
+
+      const response = await api.post("/sessions", data);
+      console.log(response.data);
+    } catch (error) {
+      console.log(error);
+
+      if (error instanceof ZodError) {
+        return { message: error.issues[0].message };
+      }
+
+      if (error instanceof AxiosError) {
+        return { message: error.response?.data.message };
+      }
+
+      return alert("Could not login");
+    }
+
+    // await new Promise((resolve) => {
+    //   setTimeout(() => {
+    //     resolve("ok");
+    //   }, 700);
+    // });
   }
   return (
-    <form onSubmit={onSubmit} className="w-full flex flex-col gap-4">
+    <form action={formaAction} className="w-full flex flex-col gap-4">
       <Input
-        required
+        name="email"
+        // required
+        formNoValidate
         legend="E-mail"
-        type="email"
+        // type="email"
         placeholder="seuemail@email.com"
-        onChange={(e) => setEmail(e.target.value)}
+        // onChange={(e) => setEmail(e.target.value)}
       />
       <Input
-        required
+        name="password"
+        // required
+        formNoValidate
         legend="Senha"
         type="password"
         placeholder="123456"
-        onChange={(e) => setPassword(e.target.value)}
+        // onChange={(e) => setPassword(e.target.value)}
       />
+
+      <p className="text-sm text-red-600 text-center my-4 font-medium">
+        {state?.message}
+      </p>
 
       <Button type="submit" isLoading={isLoading}>
         Entrar
@@ -35,7 +74,9 @@ export function SignIn() {
       <a
         href="/signup"
         className="text-sm font-semibold text-gray-100 mt-0 mb-4 text-center hover:text-green-800 transition ease-linear"
-      >Criar conta</a>
+      >
+        Criar conta
+      </a>
     </form>
   );
 }
