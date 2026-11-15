@@ -7,23 +7,71 @@ import { Button } from "../components/Button";
 import { useNavigate } from "react-router";
 import { useParams } from "react-router";
 import fileSvg from "../assets/file.svg";
+import { z, ZodError } from "zod";
+import { api } from "../services/api";
+import { AxiosError } from "axios";
+
+const refundScheme = z.object({
+  name: z.string().min(3, { message: "Be clear at the name of your request" }),
+  category: z.string().min(1, { message: "Inform the category" }),
+  amount: z.coerce
+    .number({ message: "Inform a valid number" })
+    .positive({ message: "Inform a valid number and higher then zero" }),
+});
 
 export function Refund() {
   const [category, setCategory] = useState("Transport");
-  const [name, setName] = useState("R");
-  const [amount, setAmount] = useState("34");
+  const [name, setName] = useState("");
+  const [amount, setAmount] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [filename, setFileneme] = useState<File | null>(null);
+  const [file, setFile] = useState<File | null>(null);
 
   const navigate = useNavigate();
   const params = useParams<{ id: string }>();
 
-  function onSubmit(e: React.SubmitEvent) {
+  async function onSubmit(e: React.SubmitEvent) {
     e.preventDefault();
+
     if (params.id) {
       return navigate(-1);
     }
-    navigate("/confirm", { state: { fromSubmit: true } });
+
+    try {
+      setIsLoading(true);
+
+      if (!file) {
+        return alert("Choose a file!");
+      }
+
+      const fileUploadForm = new FormData();
+      fileUploadForm.append("file", file);
+
+      const response = await api.post("/uploads", fileUploadForm);
+
+      const data = refundScheme.parse({
+        name,
+        category,
+        amount: amount.replace(",", "."),
+      });
+      await api.post("/refunds", {
+        ...data,
+        filename: response.data.filename,
+      });
+
+      navigate("/confirm", { state: { fromSubmit: true } });
+    } catch (error) {
+      console.log(error);
+
+      if (error instanceof ZodError) {
+        return alert(error.issues[0].message);
+      }
+      if (error instanceof AxiosError) {
+        return alert(error.response?.data.message);
+      }
+      alert("Could not work it");
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -82,8 +130,8 @@ export function Refund() {
         </a>
       ) : (
         <Upload
-          filename={filename && filename.name}
-          onChange={(e) => e.target.files && setFileneme(e.target.files[0])}
+          filename={file && file.name}
+          onChange={(e) => e.target.files && setFile(e.target.files[0])}
         />
       )}
 
