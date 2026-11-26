@@ -11,7 +11,7 @@ import Pagination from "../components/Pagination";
 import { api } from "../services/api";
 import { AxiosError } from "axios";
 
-const PER_PAGE = 5;
+const PER_PAGE = 2;
 
 export function Dashboard() {
   const [name, setName] = useState("");
@@ -21,10 +21,7 @@ export function Dashboard() {
 
   async function fetchRedunds() {
     try {
-      console.log(
-        "URL:",
-        `/refunds?name=${name.trim()}&page=${page}&perPage=${PER_PAGE}`,
-      );
+      
       const response = await api.get<RefundsPaginationAPIResponse>(
         `/refunds?name=${name.trim()}&page=${page}&perPage=${PER_PAGE}`,
       );
@@ -38,6 +35,7 @@ export function Dashboard() {
           categoryImg: CATEGORIES[refund.category].icon,
         })),
       );
+      setTotalOfPages(response.data.totalPages);
     } catch (error) {
       console.log(error);
 
@@ -51,7 +49,7 @@ export function Dashboard() {
 
   useEffect(() => {
     fetchRedunds();
-  }, []);
+  }, [page]);
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();

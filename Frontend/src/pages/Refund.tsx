@@ -20,7 +20,7 @@ const refundScheme = z.object({
 });
 
 export function Refund() {
-  const [category, setCategory] = useState("Transport");
+  const [category, setCategory] = useState("food");
   const [name, setName] = useState("");
   const [amount, setAmount] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -106,7 +106,9 @@ export function Refund() {
           disabled={!!params.id}
         >
           {CATEGORIES_KEYS.map((category) => (
-            <option key={category}>{CATEGORIES[category].name}</option>
+            <option key={category} value={category}>
+              {CATEGORIES[category].name}
+            </option>
           ))}
         </Select>
 
