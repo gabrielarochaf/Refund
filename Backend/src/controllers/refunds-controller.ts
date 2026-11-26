@@ -49,10 +49,9 @@ class RefundsController {
     const { name, page, perPage } = querySchema.parse(request.query);
     const refunds = await prisma.refunds.findMany({
       where: {
-        user: {
-          name: {
-            contains: name.trim(),
-          },
+        name: {
+          contains: name.trim(),
+          // mode: "insensitive",
         },
       },
       skip: (page - 1) * perPage,
@@ -66,10 +65,9 @@ class RefundsController {
     //obter o total de registros para paginação
     const totalRefunds = await prisma.refunds.count({
       where: {
-        user: {
-          name: {
-            contains: name.trim(),
-          },
+        name: {
+          contains: name.trim(),
+          // mode: "insensitive",
         },
       },
     });
