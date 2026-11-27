@@ -13,6 +13,7 @@ function ensureAuthentication(
   response: Response,
   next: NextFunction,
 ) {
+  console.log("JWT middleware executado:", request.originalUrl);
   try {
     const authHeader = request.headers.authorization;
 

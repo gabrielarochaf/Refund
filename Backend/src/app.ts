@@ -10,6 +10,13 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+app.use("/uploads", (req, res, next) => {
+  console.log("Requisição chegou em /uploads:", req.originalUrl);
+  next();
+});
+
+app.use("/uploads", express.static(uploadConfig.UPLOADS_FOLDER));
+
 app.use("/uploads", express.static(uploadConfig.UPLOADS_FOLDER));
 app.use(routes);
 

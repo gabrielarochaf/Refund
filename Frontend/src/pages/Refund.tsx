@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Input } from "../components/Input";
 import { Select } from "../components/Select";
 import { CATEGORIES, CATEGORIES_KEYS } from "../utils/categories";
@@ -10,6 +10,7 @@ import fileSvg from "../assets/file.svg";
 import { z, ZodError } from "zod";
 import { api } from "../services/api";
 import { AxiosError } from "axios";
+import { FormatCurrency } from "../utils/FormatCurrency";
 
 const refundScheme = z.object({
   name: z.string().min(3, { message: "Be clear at the name of your request" }),
@@ -25,6 +26,7 @@ export function Refund() {
   const [amount, setAmount] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
+  const [fileURL, setFileURL] = useState<string | null>(null);
 
   const navigate = useNavigate();
   const params = useParams<{ id: string }>();
@@ -74,6 +76,30 @@ export function Refund() {
     }
   }
 
+  async function fetchRefund(id: string) {
+    try {
+      const { data } = await api.get<RefundAPIResponse>(`/refunds/${id}`);
+      setName(data.refund.name);
+      setCategory(data.refund.category);
+      setAmount(FormatCurrency(data.refund.amount));
+      setFileURL(data.refund.filename);
+      console.log(data);
+    } catch (error) {
+      console.log(error);
+
+      if (error instanceof AxiosError) {
+        return alert(error.response?.data.message);
+      }
+      alert("Could not load");
+    }
+  }
+
+  useEffect(() => {
+    if (params.id) {
+      fetchRefund(params.id);
+    }
+  }, [params.id]);
+  console.log("URL:", `http://localhost:3333/uploads/${fileURL}`);
   return (
     <form
       onSubmit={onSubmit}
@@ -121,9 +147,9 @@ export function Refund() {
         />
       </div>
 
-      {params.id ? (
+      {params.id && fileURL ? (
         <a
-          href="/"
+          href={`http://localhost:3333/uploads/${fileURL}`}
           target="_blank"
           className="text-sm text-green-100 font-semibold flex items-center justify-center gap-2 my-6 hover:opacity-70 transition ease-linear"
         >

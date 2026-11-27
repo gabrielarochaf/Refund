@@ -21,18 +21,17 @@ export function Dashboard() {
 
   async function fetchRedunds() {
     try {
-      
       const response = await api.get<RefundsPaginationAPIResponse>(
         `/refunds?name=${name.trim()}&page=${page}&perPage=${PER_PAGE}`,
       );
 
       setRefunds(
         response.data.refunds.map((refund) => ({
-          id: refund.id,
-          name: refund.name,
-          category: refund.category,
-          amount: FormatCurrency(refund.amount),
-          categoryImg: CATEGORIES[refund.category].icon,
+          id: refund.refund.id,
+          name: refund.refund.name,
+          category: refund.refund.category,
+          amount: FormatCurrency(refund.refund.amount),
+          categoryImg: CATEGORIES[refund.refund.category].icon,
         })),
       );
       setTotalOfPages(response.data.totalPages);
